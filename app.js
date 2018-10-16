@@ -23,7 +23,8 @@ app.use(methodOverride("_method"));
 
 //seedDB();
 
-mongoose.connect(process.env.DATABASEURL);
+var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
+mongoose.connect(url);
 //mongoose.connect("mongodb://localhost/yelp_camp");
 //mongoose.connect("mongodb://shaoboran:195891sbr@ds131963.mlab.com:31963/yelpcampshao");
 
