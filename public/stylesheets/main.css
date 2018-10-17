@@ -9,3 +9,11 @@
 .deleteform {
     display: inline;
 }
+
+#chatroombody {
+    margin-top: 35px;
+}
+
+#messageArea{
+    display: none;
+}

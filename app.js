@@ -10,11 +10,18 @@ var express         = require("express"),
     User            = require("./models/user"),
     LocalStrategy   = require("passport-local"),
     flash           = require("connect-flash"),
-    methodOverride  = require("method-override");
+    methodOverride  = require("method-override"),
+    server          = require('http').createServer(app),
+    io              = require('socket.io').listen(server);
+    
+var users = []; 
+var connections = []; 
 
 var commentRoutes      = require("./routes/comments"),
     campgroundRoutes   = require("./routes/campgrounds"),
+    chatroomRoutes     = require("./routes/chatroom"), 
     indexRoutes        = require("./routes/index"); 
+    
     
 console.log(process.env.DATABASEURL);
 
@@ -58,16 +65,43 @@ app.use(function(req, res, next){
 app.use(indexRoutes);
 app.use("/campground/:id/comments",commentRoutes);
 app.use("/campground",campgroundRoutes);
+app.use("/chatroom",chatroomRoutes);
 
-//midware
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
+io.on('connection', function(socket){
+    connections.push(socket); 
+    console.log('Connected: %s sockets connected', connections.length);
+    
+    //disconnect
+    socket.on('disconnect', function(data){
+      // if (!socket.username) {
+      //   return; 
+      // }
+      users.splice(users.indexOf(socket.username), 1); 
+      updateUsernames(); 
+      
+      connections.splice(connections.indexOf(socket), 1); 
+      console.log('Disconnected: %s sockets connected', connections.length); 
+    });
+    
+    //send message
+    socket.on('send message', function(data){
+      io.sockets.emit('new message', {msg: data, name: socket.username}); 
+    });
+    
+    //new user
+    socket.on('new user', function(data, callback){
+      callback(true); 
+      socket.username = data; 
+      users.push(socket.username);
+      updateUsernames(); 
+    });
+    
+    function updateUsernames() {
+      io.sockets.emit('get users', users); 
     }
-    res.redirect("/login");
-}
+});
 
-app.listen(process.env.PORT, process.env.IP, function(){
+server.listen(process.env.PORT, process.env.IP, function(){
     console.log("YelpCamp server on!");
 });
 //every exprees need this line at bottom
