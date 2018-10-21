@@ -12,7 +12,7 @@ router.get("/", function(req, res){
     res.render("landing");
 });
 //show all cg
-router.get("/campground", function(req, res){
+router.get("/album", function(req, res){
     
     Campground.find({}, function(err, allCampgrounds){
         if (err) {
@@ -40,7 +40,7 @@ router.post("/register", function(req, res) {
         }
         passport.authenticate("local")(req, res, function(){
             req.flash("success", "Welcome to our website" + user.username); 
-            res.redirect("/campground"); 
+            res.redirect("/album"); 
         });
     });
 });
@@ -53,7 +53,7 @@ router.get("/login", function(req,res){
 
 router.post("/login", passport.authenticate("local",
     {
-        successRedirect: "/campground",
+        successRedirect: "/album",
         failureRedirect: "/login"
         
     }) ,function(req, res){
@@ -63,7 +63,7 @@ router.post("/login", passport.authenticate("local",
 router.get("/logout", function(req,res){
     req.logout(); 
     req.flash("success", "Successfully logged out");
-    res.redirect("/campground");
+    res.redirect("/album");
 });
 
 
@@ -113,7 +113,7 @@ router.get('/notifications/:id', middleware.isLoggedIn, async function(req, res)
     let notification = await Notification.findById(req.params.id);
     notification.isRead = true;
     notification.save();
-    res.redirect(`/campground/${notification.campgroundId}`);
+    res.redirect(`/album/${notification.campgroundId}`);
   } catch(err) {
     req.flash('error', err.message);
     res.redirect('back');

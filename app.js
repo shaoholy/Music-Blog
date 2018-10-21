@@ -31,9 +31,9 @@ app.use(methodOverride("_method"));
 
 //seedDB();
 
-//var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
-// mongoose.connect(url);
-mongoose.connect("mongodb://localhost/yelp_camp");
+var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
+mongoose.connect(url);
+//mongoose.connect("mongodb://localhost/yelp_camp");
 //mongoose.connect("mongodb://shaoboran:195891sbr@ds131963.mlab.com:31963/yelpcampshao");
 
 
@@ -73,8 +73,8 @@ app.use(async function(req, res, next){
 
 //use/require the routes
 app.use(indexRoutes);
-app.use("/campground/:id/comments",commentRoutes);
-app.use("/campground",campgroundRoutes);
+app.use("/album/:id/comments",commentRoutes);
+app.use("/album",campgroundRoutes);
 app.use("/chatroom",chatroomRoutes);
 
 io.on('connection', function(socket){

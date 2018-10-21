@@ -49,7 +49,7 @@ router.post("/", middleware.isLoggedIn, async function(req, res){
       }
 
       //redirect back to campgrounds/id page
-      res.redirect(`/campground/${campground.id}`);
+      res.redirect(`/album/${campground.id}`);
     } catch(err) {
       req.flash('error', err.message);
       res.redirect('back');
@@ -104,9 +104,9 @@ router.put("/:id", middleware.checkCampgroundOwnership, function(req, res) {
    //find and update the correct campground
    Campground.findByIdAndUpdate(req.params.id, req.body.campground, function(err, updateCampground) {
        if (err) {
-           res.redirect("/campground");
+           res.redirect("/album");
        } else {
-           res.redirect("/campground/" + req.params.id);
+           res.redirect("/album/" + req.params.id);
        }
    })
    //redirect to the updated CG
@@ -116,9 +116,9 @@ router.put("/:id", middleware.checkCampgroundOwnership, function(req, res) {
 router.delete("/:id", middleware.checkCampgroundOwnership, function(req, res) {
     Campground.findByIdAndRemove(req.params.id, function(err){
        if (err) {
-           res.redirect("/campground");
+           res.redirect("/album");
        } else {
-           res.redirect("/campground");
+           res.redirect("/album");
        }
     });
 });
