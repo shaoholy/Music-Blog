@@ -11,6 +11,7 @@ var express         = require("express"),
     LocalStrategy   = require("passport-local"),
     flash           = require("connect-flash"),
     methodOverride  = require("method-override"),
+    cookieParser    = require('cookie-parser'),
     server          = require('http').createServer(app),
     io              = require('socket.io').listen(server);
     
@@ -30,13 +31,14 @@ app.use(methodOverride("_method"));
 
 //seedDB();
 
-var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
-mongoose.connect(url);
-//mongoose.connect("mongodb://localhost/yelp_camp");
+//var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
+// mongoose.connect(url);
+mongoose.connect("mongodb://localhost/yelp_camp");
 //mongoose.connect("mongodb://shaoboran:195891sbr@ds131963.mlab.com:31963/yelpcampshao");
 
 
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 app.set("view engine", "ejs");
 
 //passport config
@@ -54,11 +56,19 @@ passport.deserializeUser(User.deserializeUser());
 
 
 //all locals can have currentUser
-app.use(function(req, res, next){
-   res.locals.currentUser = req.user; 
-   res.locals.error = req.flash("error"); 
-   res.locals.success = req.flash("success"); 
-   next(); 
+app.use(async function(req, res, next){
+   res.locals.currentUser = req.user;
+   if(req.user) {
+    try {
+      let user = await User.findById(req.user._id).populate('notifications', null, { isRead: false }).exec();
+      res.locals.notifications = user.notifications.reverse();
+    } catch(err) {
+      console.log(err.message);
+    }
+   }
+   res.locals.error = req.flash("error");
+   res.locals.success = req.flash("success");
+   next();
 });
 
 //use/require the routes
@@ -85,7 +95,9 @@ io.on('connection', function(socket){
     
     //send message
     socket.on('send message', function(data){
-      io.sockets.emit('new message', {msg: data, name: socket.username}); 
+        //console.log(data.name);
+        //console.log(req.cookie);
+      io.sockets.emit('new message', {msg: data.msg, name: socket.username}); 
     });
     
     //new user

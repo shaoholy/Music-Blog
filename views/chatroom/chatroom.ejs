@@ -1,13 +1,17 @@
 <% include ../partials/header %>
         <div id = "chatroombody">
-            <h1>Chat Room</h1>
+            <header class = "jumbotron">
+                  <div class = "container">
+                      <h4>Welcome to chartroom</h4>
+                  </div>
+            </header>
             <div class = "container">
               <!--//one row of left (user) and right (message form)-->
               <div id = "userFormArea" class = "row">
                 <div class = "col-md-12">
                   <form id = "userForm">
                     <div class = "form-group">
-                      <label>Enter Username</label>
+                      <label>Enter Your Nickname for the Chatroom</label>
                       <input class = "form-control" id = "username"/>
                       <br />
                       <input type = "submit" class = "btn btn-primary" value =  "login"/>
@@ -18,6 +22,9 @@
               <div id = "messageArea" class = "row">
                 
                 <div class = "col-md-4">
+                  <div class = "well">
+                      <p>Current User: <span id = "thename"><strong><%= realusername %></strong></span></p>
+                  </div>
                   <div class = "well">
                     <h4>Online Users</h4>
                     <ul class = "list-group" id = "users"></ul>
@@ -54,11 +61,18 @@
                 var $userForm = $('#userForm');
                 var $users = $('#users');
                 var $username = $('#username');
+                //var usrName = "@HttpContext.Current.User.Identity.Name";
+                //console.log(currentUser.username);
+                var $realname = $('#thename');//$.cookie('username');
                 
                 $messageForm.submit(function(e){
                   e.preventDefault();
-                  console.log('Submitted');
-                  socket.emit('send message', $message.val());
+                  var detail = {  
+                        msg: $message.val(),
+                        name: $realname
+                        };  
+                  //socket.emit('send message', $message.val());
+                  socket.emit('send message', detail);
                   $message.val('');
                 });
                 
@@ -67,8 +81,6 @@
                 });
                 
                 $userForm.submit(function(e){
-                    console.log("user submitted");
-                    console.log($username.val());
                   e.preventDefault();
                   socket.emit('new user', $username.val(), function(data){
                     if (data) {
@@ -90,4 +102,5 @@
               });
             </script>
         </div>
-<% include ../partials/footer %>
+    </body>
+</html>

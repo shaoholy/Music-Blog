@@ -2,6 +2,8 @@ var express = require("express");
 var router = express.Router(); 
 var Campground = require("../models/campground"); 
 var middleware = require("../midware");
+var User = require("../models/user");
+var Notification = require("../models/notification");
 
 //show form to create cg
 router.get("/new",middleware.isLoggedIn, function(req, res){
@@ -19,29 +21,62 @@ router.get("/", function(req, res){
         }
     });
 });
+
 //post a new pg
-router.post("/", middleware.isLoggedIn, function(req, res){
-    //get data from form and store in sys
-    //console.log(req);
-    var name = req.body.name; 
-    var url =  req.body.img; 
-    var description =  req.body.description; 
+router.post("/", middleware.isLoggedIn, async function(req, res){
+    // get data from form and add to campgrounds array
+    var name = req.body.name;
+    var image = req.body.img;
+    var artist = req.body.artist;
+    var desc = req.body.description;
     var author = {
-        id: req.user._id, 
+        id: req.user._id,
         username: req.user.username
-    }; 
-    var newCamp = {name: name, image: url, description: description, author: author};
-    
-    //save to mongo db
-    Campground.create(newCamp, function(err, newlyCreated){
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(newCamp);
-            res.redirect("/campground");
-        }
-    });
+    }
+    var newCampground = {name: name, image: image, artist: artist, description: desc, author:author}
+
+    try {
+      let campground = await Campground.create(newCampground);
+      let user = await User.findById(req.user._id).populate('followers').exec();
+      let newNotification = {
+        username: req.user.username,
+        campgroundId: campground.id
+      }
+      for(const follower of user.followers) {
+        let notification = await Notification.create(newNotification);
+        follower.notifications.push(notification);
+        follower.save();
+      }
+
+      //redirect back to campgrounds/id page
+      res.redirect(`/campground/${campground.id}`);
+    } catch(err) {
+      req.flash('error', err.message);
+      res.redirect('back');
+    }
 });
+// router.post("/", middleware.isLoggedIn, function(req, res){
+//     //get data from form and store in sys
+//     //console.log(req);
+//     var name = req.body.name; 
+//     var url =  req.body.img; 
+//     var description =  req.body.description; 
+//     var author = {
+//         id: req.user._id, 
+//         username: req.user.username
+//     }; 
+//     var newCamp = {name: name, image: url, description: description, author: author};
+    
+//     //save to mongo db
+//     Campground.create(newCamp, function(err, newlyCreated){
+//         if (err) {
+//             console.log(err);
+//         } else {
+//             console.log(newCamp);
+//             res.redirect("/campground");
+//         }
+//     });
+// });
 
 //show more infor. about chosen PG item 
 router.get("/:id", function(req, res) {
