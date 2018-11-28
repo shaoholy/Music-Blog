@@ -1,5 +1,6 @@
 var express         = require("express"),
     app             = express(),
+    session         = require('express-session'),
     request         = require("request"),
     bodyParser      = require("body-parser"),
     mongoose        = require("mongoose"),
@@ -21,6 +22,7 @@ var connections = [];
 var commentRoutes      = require("./routes/comments"),
     campgroundRoutes   = require("./routes/campgrounds"),
     chatroomRoutes     = require("./routes/chatroom"), 
+    reviewRoutes       = require("./routes/reviews"),
     indexRoutes        = require("./routes/index"); 
     
     
@@ -40,6 +42,15 @@ mongoose.connect(url);
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
+
+//app session
+app.use(session({
+  secret: 'keyboard cat',
+  resave: true,
+  saveUninitialized: true
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 //passport config
 app.use(require("express-session")({
@@ -76,6 +87,7 @@ app.use(indexRoutes);
 app.use("/album/:id/comments",commentRoutes);
 app.use("/album",campgroundRoutes);
 app.use("/chatroom",chatroomRoutes);
+app.use("/album/:id/reviews", reviewRoutes);
 
 io.on('connection', function(socket){
     connections.push(socket); 

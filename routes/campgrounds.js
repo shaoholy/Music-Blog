@@ -4,6 +4,8 @@ var Campground = require("../models/campground");
 var middleware = require("../midware");
 var User = require("../models/user");
 var Notification = require("../models/notification");
+var Comment = require("../models/comment");
+var Review = require("../models/review");
 
 //show form to create cg
 router.get("/new",middleware.isLoggedIn, function(req, res){
@@ -55,37 +57,31 @@ router.post("/", middleware.isLoggedIn, async function(req, res){
       res.redirect('back');
     }
 });
-// router.post("/", middleware.isLoggedIn, function(req, res){
-//     //get data from form and store in sys
-//     //console.log(req);
-//     var name = req.body.name; 
-//     var url =  req.body.img; 
-//     var description =  req.body.description; 
-//     var author = {
-//         id: req.user._id, 
-//         username: req.user.username
-//     }; 
-//     var newCamp = {name: name, image: url, description: description, author: author};
-    
-//     //save to mongo db
-//     Campground.create(newCamp, function(err, newlyCreated){
+
+// //show more infor. about chosen PG item 
+// router.get("/:id", function(req, res) {
+//     //find the campground with the id, in db, then render the information in db on web-page
+//     Campground.findById(req.params.id).populate("comments").exec(function(err, foundCG){
 //         if (err) {
 //             console.log(err);
 //         } else {
-//             console.log(newCamp);
-//             res.redirect("/campground");
+//             res.render("campgrounds/show", {campground: foundCG});
 //         }
 //     });
 // });
 
-//show more infor. about chosen PG item 
-router.get("/:id", function(req, res) {
-    //find the campground with the id, in db, then render the information in db on web-page
-    Campground.findById(req.params.id).populate("comments").exec(function(err, foundCG){
+// SHOW - shows more info about one campground
+router.get("/:id", function (req, res) {
+    //find the campground with provided ID
+    Campground.findById(req.params.id).populate("comments").populate({
+        path: "reviews",
+        options: {sort: {createdAt: -1}}
+    }).exec(function (err, foundCampground) {
         if (err) {
             console.log(err);
         } else {
-            res.render("campgrounds/show", {campground: foundCG});
+            //render show template with that campground
+            res.render("campgrounds/show", {campground: foundCampground});
         }
     });
 });
@@ -120,6 +116,33 @@ router.delete("/:id", middleware.checkCampgroundOwnership, function(req, res) {
        } else {
            res.redirect("/album");
        }
+    });
+});
+// DESTROY CAMPGROUND ROUTE
+router.delete("/:id", middleware.checkCampgroundOwnership, function (req, res) {
+    Campground.findById(req.params.id, function (err, campground) {
+        if (err) {
+            res.redirect("/album");
+        } else {
+            // deletes all comments associated with the campground
+            Comment.remove({"_id": {$in: campground.comments}}, function (err) {
+                if (err) {
+                    console.log(err);
+                    return res.redirect("/album");
+                }
+                // deletes all reviews associated with the campground
+                Review.remove({"_id": {$in: campground.reviews}}, function (err) {
+                    if (err) {
+                        console.log(err);
+                        return res.redirect("/album");
+                    }
+                    //  delete the campground
+                    campground.remove();
+                    req.flash("success", "Campground deleted successfully!");
+                    res.redirect("/album");
+                });
+            });
+        }
     });
 });
 
