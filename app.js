@@ -36,7 +36,7 @@ app.use(methodOverride("_method"));
 var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
 mongoose.connect(url);
 //mongoose.connect("mongodb://localhost/yelp_camp");
-//mongoose.connect("mongodb://shaoboran:195891sbr@ds131963.mlab.com:31963/yelpcampshao");
+//mongoose.connect("mongodb://shaobo:pass1234@ds131963.mlab.com:31963/yelpcampshao");
 
 
 app.use(bodyParser.urlencoded({extended: true}));
